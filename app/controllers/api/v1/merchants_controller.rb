@@ -10,4 +10,9 @@ class Api::V1::MerchantsController < ApplicationController
       render status: 404
     end
   end
+
+  def find_all
+    merchants = Merchant.where("name ILIKE ?", "%#{params[:name]}%")
+    render json: MerchantSerializer.new(merchants)
+  end
 end
