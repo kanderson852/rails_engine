@@ -46,8 +46,6 @@ describe "Items API" do
                     merchant_id: merchant.id
                   })
     headers = {"CONTENT_TYPE" => "application/json"}
-
-    # We include this header to make sure that these params are passed as JSON rather than as plain text
     post "/api/v1/items", headers: headers, params: JSON.generate(item: item_params)
     created_item = Item.last
 
@@ -89,7 +87,7 @@ describe "Items API" do
   it 'can find an items merchant' do
     merchant1 = create(:merchant)
     item = create(:item, merchant_id: merchant1.id)
-    get "/api/v1/items/#{item.id}/merchants"
+    get "/api/v1/items/#{item.id}/merchant"
 
     merchant = JSON.parse(response.body, symbolize_names: true)
 
