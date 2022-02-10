@@ -1,24 +1,21 @@
-# README
+# Rails Engine 
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+### About this Project
 
-Things you may want to cover:
+Rails Engine is an API created to send data and CRUD functionality for merchants and items objects, as well as search features.
 
-* Ruby version
+## Local Setup for any other use
 
-* System dependencies
+1. Fork and Clone the repo
+2. Install gem packages: `bundle install`
+3. Setup the database: `rails db:create`
 
-* Configuration
 
-* Database creation
+## Versions
 
-* Database initialization
+- Ruby 2.7.2
 
-* How to run the test suite
+- Rails 5.2.6
 
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+## Schema 
+<img width="788" alt="Screen Shot 2022-01-12 at 8 45 09 AM" src="https://user-images.githubusercontent.com/89048720/149183923-2e245216-e62a-40e8-8974-1ce1b661382a.png">
