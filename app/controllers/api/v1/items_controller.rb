@@ -32,14 +32,15 @@ class Api::V1::ItemsController < ApplicationController
 
   def find
     if params[:name]
-      item = Item.where("name ILIKE ?", "%#{params[:name]}%")
-                .order(name: :asc)
-                .first
+      item = Item.find_by_name
     elsif params[:max_price] && params[:min_price]
+      item = Item.find_by_range
+    elsif params[:max_price]
+      item = Item.find_by_max
+    elsif params[:min_price]
+      item = Item.find_by_min
     end
-
-    # require "pry"; binding.pry
-
+    
     render json: ItemSerializer.new(item)
   end
 
