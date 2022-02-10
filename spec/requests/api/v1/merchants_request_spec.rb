@@ -45,7 +45,33 @@ describe "Merchants API" do
     expect(merchant[:data]).to be_a(Array)
     expect(merchant[:data].first).to be_a(Hash)
     expect(merchant[:data].first).to have_key(:attributes)
+  end
 
- end
+  it 'can search for all merchants' do
+    merchant = create(:merchant, name: "Ring World")
+    merchant1 = create(:merchant, name: "Turing School")
+    get '/api/v1/merchants/find_all?name=ring'
+
+    expected = {
+      "data": [
+        {
+          "id": "#{merchant.id}",
+          "type": "merchant",
+          "attributes": {
+            "name": "Ring World"
+          }
+        },
+        {
+          "id": "#{merchant1.id}",
+          "type": "merchant",
+          "attributes": {
+            "name": "Turing School"
+          }
+        }
+      ]
+    }.to_json
+    expect(response).to be_successful
+    expect(response.body).to eq(expected)
+  end
 
 end
