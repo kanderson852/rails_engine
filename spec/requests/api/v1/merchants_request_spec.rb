@@ -13,11 +13,10 @@ describe "Merchants API" do
     expect(merchants[:data].count).to eq(3)
 
     merchants[:data].each do |merchant|
-      expect(merchant).to have_key(:relationships)
-      expect(merchant[:relationships]).to be_a(Hash)
-
       expect(merchant).to have_key(:attributes)
       expect(merchant[:attributes]).to be_a(Hash)
+      expect(merchant[:attributes]).to have_key(:name)
+      expect(merchant[:attributes][:name]).to be_a(String)
     end
    end
 
@@ -27,14 +26,26 @@ describe "Merchants API" do
     get "/api/v1/merchants/#{id}"
 
     merchant = JSON.parse(response.body, symbolize_names: true)
-
     expect(response).to be_successful
-
-    expect(merchant[:data]).to have_key(:relationships)
-    expect(merchant[:data][:relationships]).to be_a(Hash)
 
     expect(merchant[:data]).to have_key(:attributes)
     expect(merchant[:data][:attributes]).to be_a(Hash)
+    expect(merchant[:data][:attributes]).to have_key(:name)
+    expect(merchant[:data][:attributes][:name]).to be_a(String)
   end
+
+  it "can get one merchants items" do
+    merchant = create(:merchant)
+    list = create_list(:item, 3, merchant_id: merchant.id)
+    get "/api/v1/merchants/#{merchant.id}/items"
+
+    merchant = JSON.parse(response.body, symbolize_names: true)
+    expect(response).to be_successful
+
+    expect(merchant[:data]).to be_a(Array)
+    expect(merchant[:data].first).to be_a(Hash)
+    expect(merchant[:data].first).to have_key(:attributes)
+
+ end
 
 end
