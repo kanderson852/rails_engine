@@ -8,15 +8,39 @@ class Api::V1::ItemsController < ApplicationController
   end
 
   def create
-    render json: ItemSerializer.new(Item.create(item_params))
+    item = Item.new(item_params)
+    if item.save
+      render json: ItemSerializer.new(Item.create(item_params)), status: :created
+    end
   end
 
   def update
-    render json: ItemSerializer.new(Item.update(params[:id], item_params))
+    item = Item.find(params[:id])
+    if item.update(item_params) && Merchant.find(params[:item][:merchant_id])
+      render json: ItemSerializer.new(item)
+    else
+      render status: 404
+    end
   end
 
   def destroy
-    render json: Item.delete(params[:id])
+    item = Item.find(params[:id])
+    if item.destroy
+      render status: :no_content
+    end
+  end
+
+  def find
+    if params[:name]
+      item = Item.where("name ILIKE ?", "%#{params[:name]}%")
+                .order(name: :asc)
+                .first
+    elsif params[:max_price] && params[:min_price]
+    end
+
+    # require "pry"; binding.pry
+
+    render json: ItemSerializer.new(item)
   end
 
 private

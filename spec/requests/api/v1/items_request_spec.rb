@@ -43,7 +43,6 @@ describe "Items API" do
                     name: 'abc',
                     description: 'xyz',
                     unit_price: 2,
-                    summary: 'Filled with suspense.',
                     merchant_id: merchant.id
                   })
     headers = {"CONTENT_TYPE" => "application/json"}
@@ -76,7 +75,7 @@ describe "Items API" do
     merchant = create(:merchant)
     id = create(:item, merchant_id: merchant.id).id
     previous_name = Item.last.name
-    item_params = { name: "abc" }
+    item_params = { name: "abc", merchant_id: "#{merchant.id}" }
     headers = {"CONTENT_TYPE" => "application/json"}
 
     patch "/api/v1/items/#{id}", headers: headers, params: JSON.generate({item: item_params})
@@ -86,4 +85,73 @@ describe "Items API" do
     expect(item.name).to_not eq(previous_name)
     expect(item.name).to eq("abc")
   end
+
+  it 'can find an items merchant' do
+    merchant1 = create(:merchant)
+    item = create(:item, merchant_id: merchant1.id)
+    get "/api/v1/items/#{item.id}/merchants"
+
+    merchant = JSON.parse(response.body, symbolize_names: true)
+
+    expect(response).to be_successful
+    expect(merchant[:data]).to be_a(Hash)
+    expect(merchant[:data]).to have_key(:id)
+    expect(merchant[:data][:id]).to eq("#{merchant1.id}")
+  end
+
+  it 'can search for an item' do
+    merchant = create(:merchant)
+    item = Item.create!(name: 'ring', description: 'abc', unit_price: 10, merchant_id: merchant.id)
+    get '/api/v1/items/find?name=ring'
+
+    expected = {
+      "data": {
+        "id": "#{item.id}",
+        "type": "item",
+        "attributes": {
+          "name": "ring",
+          "description": "abc",
+          "unit_price": 10.0,
+          "merchant_id": merchant.id
+        }
+      }
+    }.to_json
+    expect(response).to be_successful
+    expect(response.body).to eq(expected)
+  end
+
+  it 'finds first item that contains case insensitive name search' do
+    merchant = create(:merchant)
+    item = create(:item, name: "turing", merchant: merchant)
+    item2 = create(:item, name: "Ring", merchant: merchant)
+    get '/api/v1/items/find?name=rin'
+
+    item_name = JSON(response.body)["data"]["attributes"]["name"]
+    expect(response).to be_successful
+    expect(item_name).to eq("Ring")
+  end
+
+  it 'finds item above a minimum price' do
+    merchant = create(:merchant)
+    item = create(:item, unit_price: 55, merchant: merchant)
+    item2 = create(:item, unit_price: 22, merchant: merchant)
+    get '/api/v1/items/find?min_price=50'
+
+    item_price = JSON(response.body)["data"]["attributes"]["unit_price"]
+    expect(response).to be_successful
+    expect(item_price).to eq(55)
+  end
+
+  it 'finds item below a maximum price' do
+    merchant = create(:merchant)
+    item = create(:item, unit_price: 55, merchant: merchant)
+    item2 = create(:item, unit_price: 220, merchant: merchant)
+    get '/api/v1/items/find?max_price=150'
+
+    item_price = JSON(response.body)["data"]["attributes"]["unit_price"]
+    expect(response).to be_successful
+    expect(item_price).to eq(55)
+  end
+
+# GET /api/v1/items/find?max_price=150&min_price=50
 end
