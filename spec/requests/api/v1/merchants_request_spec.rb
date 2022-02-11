@@ -34,6 +34,13 @@ describe "Merchants API" do
     expect(merchant[:data][:attributes][:name]).to be_a(String)
   end
 
+  it "sends an error if the merchant doesnt exist" do
+    merchant = create(:merchant)
+    get '/api/v1/merchants/1000'
+
+    expect(response).to have_http_status(404)
+ end
+
   it "can get one merchants items" do
     merchant = create(:merchant)
     list = create_list(:item, 3, merchant_id: merchant.id)
@@ -45,6 +52,13 @@ describe "Merchants API" do
     expect(merchant[:data]).to be_a(Array)
     expect(merchant[:data].first).to be_a(Hash)
     expect(merchant[:data].first).to have_key(:attributes)
+  end
+
+  it "sends an error if the merchant doesnt exist" do
+    merchant = create(:merchant)
+    get '/api/v1/merchants/1000/items'
+
+    expect(response).to have_http_status(404)
   end
 
   it 'can search for all merchants' do
@@ -74,4 +88,27 @@ describe "Merchants API" do
     expect(response.body).to eq(expected)
   end
 
+  it 'cannot have an empty search field' do
+    merchant = create(:merchant)
+
+    get '/api/v1/merchants/find_all'
+
+    expect(response).to have_http_status(400)
+  end
+
+  it 'cannot have an empty search field' do
+    merchant = create(:merchant)
+
+    get '/api/v1/merchants/find_all?name='
+
+    expect(response).to have_http_status(400)
+  end
+
+  it 'returns an error if no matches found' do
+    merchant = create(:merchant, name: "abc")
+
+    get '/api/v1/merchants/find_all?name=xyz'
+
+    expect(response.body).to be_a(String)
+  end
 end
