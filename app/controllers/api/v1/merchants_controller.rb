@@ -22,7 +22,7 @@ class Api::V1::MerchantsController < ApplicationController
       merchants = '400'
     end
     if merchants == []
-      render json: { data: { message: 'Error: not found'}}
+      render json: { data: []}
     elsif merchants == '400'
       render status: 400
     else
