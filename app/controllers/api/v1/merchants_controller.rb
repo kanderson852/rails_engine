@@ -12,7 +12,11 @@ class Api::V1::MerchantsController < ApplicationController
   end
 
   def find_all
-    merchants = Merchant.where("name ILIKE ?", "%#{params[:name]}%")
+    if params[:name]
+      merchants = Merchant.where("name ILIKE ?", "%#{params[:name]}%")
+    else
+      merchants = []
+    end 
     render json: MerchantSerializer.new(merchants)
   end
 end

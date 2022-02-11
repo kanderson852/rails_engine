@@ -16,7 +16,8 @@ class Api::V1::ItemsController < ApplicationController
 
   def update
     item = Item.find(params[:id])
-    if item.update(item_params) && Merchant.find(params[:item][:merchant_id])
+    item.update(item_params)
+    if item.save
       render json: ItemSerializer.new(item)
     else
       render status: 404
@@ -32,25 +33,48 @@ class Api::V1::ItemsController < ApplicationController
 
   def find
     if params[:name]
-      item = Item.where("name ILIKE ?", "%#{params[:name]}%")
+      if params[:max_price] || params[:min_price]
+        item = '400'
+      else
+        item = Item.where("name ILIKE ?", "%#{params[:name]}%")
+              .order(name: :asc)
+              .first
+      end
+    elsif params[:max_price] && params[:min_price]
+      if params[:max_price] < params[:min_price]
+        item = '400'
+      else
+        item = Item.where("unit_price >= ?", params[:min_price])
+            .where("unit_price <= ?", params[:max_price])
             .order(name: :asc)
             .first
-    elsif params[:max_price] && params[:min_price]
-      item = Item.where("unit_price >= ?", params[:min_price])
-          .where("unit_price <= ?", params[:max_price])
-          .order(name: :asc)
-          .first
+      end
     elsif params[:max_price]
-      item = Item.where("unit_price <= ?", params[:max_price])
-          .order(name: :asc)
-          .first
+      if params[:max_price].to_i > 0
+        item = Item.where("unit_price <= ?", params[:max_price])
+            .order(name: :asc)
+            .first
+      else
+        item = '400'
+      end
     elsif params[:min_price]
-      item = Item.where("unit_price >= ?", params[:min_price].to_f)
-          .order(name: :asc)
-          .first
+      if params[:min_price].to_i > 0
+        item = Item.where("unit_price >= ?", params[:min_price].to_f)
+            .order(name: :asc)
+            .first
+      else
+        item = '400'
+      end
+    else
+      item = '400'
     end
-
-    render json: ItemSerializer.new(item)
+    if item == nil
+      render json: { data: { message: 'Error: not found'}}
+    elsif item == '400'
+      render status: 400
+    else
+      render json: ItemSerializer.new(item)
+    end
   end
 
 private
