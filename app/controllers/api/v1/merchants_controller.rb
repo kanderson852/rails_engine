@@ -13,10 +13,18 @@ class Api::V1::MerchantsController < ApplicationController
 
   def find_all
     if params[:name]
-      merchants = Merchant.where("name ILIKE ?", "%#{params[:name]}%")
+      if params[:name] == ''
+        merchants = '400'
+      else
+        merchants = Merchant.where("name ILIKE ?", "%#{params[:name]}%")
+      end
+    end
+    if merchants == nil
+      render json: { data: { message: 'Error: not found'}}
+    elsif merchants = '400'
+      render status: 400
     else
-      merchants = []
-    end 
-    render json: MerchantSerializer.new(merchants)
+      render json: MerchantSerializer.new(merchants)
+    end
   end
 end

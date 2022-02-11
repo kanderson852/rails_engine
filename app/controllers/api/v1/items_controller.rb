@@ -35,6 +35,8 @@ class Api::V1::ItemsController < ApplicationController
     if params[:name]
       if params[:max_price] || params[:min_price]
         item = '400'
+      elsif params[:name] == ''
+        item = '400'
       else
         item = Item.where("name ILIKE ?", "%#{params[:name]}%")
               .order(name: :asc)
