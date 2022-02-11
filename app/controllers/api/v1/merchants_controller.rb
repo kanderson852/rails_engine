@@ -21,7 +21,7 @@ class Api::V1::MerchantsController < ApplicationController
     end
     if merchants == nil
       render json: { data: { message: 'Error: not found'}}
-    elsif merchants = '400'
+    elsif merchants == '400'
       render status: 400
     else
       render json: MerchantSerializer.new(merchants)
