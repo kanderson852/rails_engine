@@ -84,6 +84,17 @@ describe "Items API" do
     expect(item.name).to eq("abc")
   end
 
+  it "returns an error if invalid params given" do
+    merchant = create(:merchant)
+    id = create(:item, merchant_id: merchant.id).id
+    previous_name = Item.last.name
+    item_params = { name: nil }
+    headers = {"CONTENT_TYPE" => "application/json"}
+
+    patch "/api/v1/items/#{id}", headers: headers, params: JSON.generate({item: item_params})
+    expect(response).to have_http_status(404)
+  end
+
   it 'can find an items merchant' do
     merchant1 = create(:merchant)
     item = create(:item, merchant_id: merchant1.id)
@@ -151,13 +162,95 @@ describe "Items API" do
     expect(item_price).to eq(55)
   end
 
-  # it 'finds item within a price range' do
-  #   merchant = create(:merchant)
-  #   item = create(:item, unit_price: 57, merchant: merchant)
-  #   item2 = create(:item, unit_price: 22, merchant: merchant)
-  #   get '/api/v1/items/find?max_price=150&min_price=50'
-  #   item_price = JSON(response.body)["data"]["attributes"]["unit_price"]
-  #   expect(response).to be_successful
-  #   expect(item_price).to eq(55)
-  # end
+  it 'finds item above a minimum price' do
+    merchant = create(:merchant)
+    item = create(:item, unit_price: 55, merchant: merchant)
+    item2 = create(:item, unit_price: 22, merchant: merchant)
+    get '/api/v1/items/find?min_price=50&max_price=70'
+
+    item_price = JSON(response.body)["data"]["attributes"]["unit_price"]
+    expect(response).to be_successful
+    expect(item_price).to eq(55)
+  end
+
+  it 'cannot have an empty search field' do
+    merchant = create(:merchant)
+    item = create(:item, unit_price: 55, merchant: merchant)
+    item2 = create(:item, unit_price: 220, merchant: merchant)
+    get '/api/v1/items/find'
+
+    expect(response).to have_http_status(400)
+  end
+
+  it 'parameter cannot be empty' do
+    merchant = create(:merchant)
+    item = create(:item, unit_price: 55, merchant: merchant)
+    item2 = create(:item, unit_price: 220, merchant: merchant)
+    get '/api/v1/items/find?name='
+
+    expect(response).to have_http_status(400)
+  end
+
+  it 'cannot send both name and min_price' do
+    merchant = create(:merchant)
+    item = create(:item, unit_price: 55, merchant: merchant)
+    item2 = create(:item, unit_price: 220, merchant: merchant)
+    get '/api/v1/items/find?name=ring&min_price=50'
+
+    expect(response).to have_http_status(400)
+  end
+
+  it 'cannot send both name and max_price' do
+    merchant = create(:merchant)
+    item = create(:item, unit_price: 55, merchant: merchant)
+    item2 = create(:item, unit_price: 220, merchant: merchant)
+    get '/api/v1/items/find?name=ring&max_price=50'
+
+    expect(response).to have_http_status(400)
+  end
+
+  it 'cannot send both name and min_price and max_price' do
+    merchant = create(:merchant)
+    item = create(:item, unit_price: 55, merchant: merchant)
+    item2 = create(:item, unit_price: 220, merchant: merchant)
+    get '/api/v1/items/find?name=ring&min_price=50&max_price=250'
+
+    expect(response).to have_http_status(400)
+  end
+
+  it 'returns an error if no matches found' do
+    merchant = create(:merchant)
+    item = create(:item, name: 'abc', merchant: merchant)
+
+    get '/api/v1/items/find?name=xyz'
+
+    expect(response.body).to be_a(String)
+  end
+
+  it 'cannot have min_price greater than max_price' do
+    merchant = create(:merchant)
+    item = create(:item, unit_price: 550, merchant: merchant)
+    item2 = create(:item, unit_price: 220, merchant: merchant)
+    get '/api/v1/items/find?min_price=500&max_price=250'
+
+    expect(response).to have_http_status(400)
+  end
+
+  it 'cannot have a max_price too low' do
+    merchant = create(:merchant)
+    item = create(:item, unit_price: 55, merchant: merchant)
+    item2 = create(:item, unit_price: 220, merchant: merchant)
+    get '/api/v1/items/find?max_price=0'
+
+    expect(response).to have_http_status(400)
+  end
+
+  it 'cannot have a min_price too low' do
+    merchant = create(:merchant)
+    item = create(:item, unit_price: 55, merchant: merchant)
+    item2 = create(:item, unit_price: 220, merchant: merchant)
+    get '/api/v1/items/find?min_price=0'
+
+    expect(response).to have_http_status(400)
+  end
 end

@@ -18,8 +18,10 @@ class Api::V1::MerchantsController < ApplicationController
       else
         merchants = Merchant.where("name ILIKE ?", "%#{params[:name]}%")
       end
+    else
+      merchants = '400'
     end
-    if merchants == nil
+    if merchants == []
       render json: { data: { message: 'Error: not found'}}
     elsif merchants == '400'
       render status: 400
